@@ -12,6 +12,7 @@ import { HelpTip, InfoGuide } from "./InfoGuide";
 import { AIChat } from "./AIChat";
 import {IndicatorPanels} from "./IndicatorPanels";
 import{CompanyPanel}from'./CompanyPanel';
+import{AppIcon,Onboarding,PreferencesMenu,WatchlistControl,WatchlistView,type WatchItem}from'./ProductContinuity';
 import "./style.css";
 import'./design-system.css';
 import './research-terminal.css';
@@ -163,7 +164,7 @@ function App() {
     [q, setQ] = useState("AAPL"),
     [tf, setTf] = useState("1D"),
     [mode, setMode] = useState("trading"),
-    [view,setView]=useState<'chart'|'company'>('chart'),
+    [view,setView]=useState<'chart'|'company'|'watchlist'>('chart'),
     [data, setData] = useState<any>(),
     [error, setError] = useState(""),
     [auto, setAuto] = useState(true),
@@ -385,7 +386,7 @@ function App() {
   };
   return (
     <main className="app-shell">
-      <nav className="side-nav" aria-label="Navigazione principale"><div className="side-mark">F</div><button className={view==='chart'?'active':''} onClick={()=>setView('chart')}><span>▥</span>Grafico</button>{data?.meta?.assetClass!=='crypto'&&<button className={view==='company'?'active':''} onClick={()=>setView('company')}><span>▤</span>Company</button>}<button disabled><span>☆</span>Watchlist</button><button disabled><span>⌁</span>Screener</button><small>RESEARCH<br/>TERMINAL</small></nav>
+      <nav className="side-nav" aria-label="Navigazione principale"><div className="side-mark">F</div><button className={view==='chart'?'active':''} onClick={()=>setView('chart')}><AppIcon name="chart"/>Grafico</button>{data?.meta?.assetClass!=='crypto'&&<button className={view==='company'?'active':''} onClick={()=>setView('company')}><AppIcon name="company"/>Company</button>}<button className={view==='watchlist'?'active':''} onClick={()=>setView('watchlist')}><AppIcon name="watchlist"/>Watchlist</button><button disabled><AppIcon name="search"/>Screener</button><small>RESEARCH<br/>TERMINAL</small></nav>
       <header>
         <div className="brand">
           <span>F</span>
@@ -421,8 +422,10 @@ function App() {
         <button className="info-button" onClick={() => setInfoOpen(true)}>
           <span>?</span> Info
         </button>
+        <PreferencesMenu />
+        {data&&view!=='watchlist'&&<WatchlistControl symbol={symbol} meta={data.meta} data={data} timeframe={tf} onOpen={()=>setView('watchlist')}/>}
       </header>
-      <section className="ticker">
+      {view!=='watchlist'&&<section className="ticker">
         <div>
           <h1>{symbol}</h1>
           <span className="live">
@@ -492,8 +495,8 @@ function App() {
           <label><input type="checkbox" checked={showRsi} onChange={e=>setShowRsi(e.target.checked)}/> RSI</label>
           <label><input type="checkbox" checked={showMacd} onChange={e=>setShowMacd(e.target.checked)}/> MACD</label>
         </div>
-      </section>
-      {error ? (
+      </section>}
+      {view==='watchlist'?<WatchlistView data={data} symbol={symbol} timeframe={tf} onSelect={(item:WatchItem)=>{setSymbol(item.symbol);setQ(item.symbol);setView('chart')}}/>:error ? (
         <div className="error">
           {error}. Nessun dato simulato è stato mostrato.
         </div>
@@ -666,6 +669,7 @@ function App() {
         )
       )}
       <InfoGuide open={infoOpen} onClose={() => setInfoOpen(false)} />
+      <Onboarding />
     </main>
   );
 }

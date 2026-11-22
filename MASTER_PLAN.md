@@ -6,6 +6,8 @@ Aggiornato il 22 novembre 2026. Questo documento distingue lo stato reale dal pi
 
 Implementato: applicazione locale React/Express, ricerca Yahoo, OHLCV/NAV, motore quantitativo, supporti/resistenze, trendline, analisi multi-timeframe, scenario tecnico, agente contestuale con fallback deterministico, annotazioni validate, glossario, Vitest, Playwright e launcher Windows.
 
+Milestone commerciale iniziale (22 novembre 2026): onboarding locale saltellabile e watchlist persistente nel browser. Non sono account, sincronizzazione o alert. Gli audit commerciali, legali, dati e unit economics classificano Yahoo/Binance come beta privata fino a verifica dei diritti commerciali.
+
 Debito tecnico osservato:
 
 - frontend concentrato in `src/main.tsx` e backend API concentrato in `server/index.ts`;

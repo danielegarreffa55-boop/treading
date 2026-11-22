@@ -4,7 +4,7 @@ Piattaforma locale incrementale per ricerca e analisi tecnica di azioni, ETF, fo
 
 ## Avvio Windows
 
-Doppio clic su `Avvia Financial AI Analyst.cmd`. Al primo avvio installa le dipendenze e crea la build; poi apre `http://localhost:8000`. Per fermare il server, chiudere la finestra del launcher o premere `Ctrl+C`.
+Doppio clic su `Avvia Financial AI Analyst.cmd`. Il launcher verifica Node.js, dipendenze, build, porta e stato del server; apre il browser soltanto quando `/api/health` risponde. Se l’app è già attiva, riapre il browser. Per fermare il server, chiudere la finestra del launcher o premere `Ctrl+C`.
 
 Avvio manuale: `npm.cmd install`, `npm.cmd run build`, `npm.cmd start`.
 
@@ -25,6 +25,13 @@ Avvio manuale: `npm.cmd install`, `npm.cmd run build`, `npm.cmd start`.
 - Pannelli grafici RSI e MACD attivabili manualmente o dall'agente
 - Vista Company editoriale con profilo, cinque esercizi annuali, metriche, qualità deterministica, valutazione, sintesi e fonti
 - Provider LLM OpenAI-compatible e Ollama opzionali
+- Onboarding locale saltellabile e watchlist persistente nel browser, senza account o telemetria remota
+
+## Watchlist e dati locali
+
+Apri uno strumento, scegli **Aggiungi alla watchlist**, scrivi il motivo e usa **Salva scenario** quando vuoi creare uno snapshot. La sezione Watchlist confronta soltanto dati compatibili per identità e timeframe e distingue “Al salvataggio” da “Adesso”. Note, snapshot e preferenze restano nel browser.
+
+Da **Preferenze** puoi riaprire l’onboarding, copiare una scheda feedback beta oppure cancellare esclusivamente le chiavi locali dell’app. La cancellazione non modifica altri dati del browser. Consulta `BETA_GUIDE.md` per una prova con cinque persone.
 
 Lo scenario è specifico per strumento e timeframe, usa barre chiuse e livelli del backend e può evidenziare sul grafico le condizioni associate. Non mostra percentuali previsionali. Dettagli in `SCENARIO_ENGINE.md`.
 

@@ -1,0 +1,9 @@
+import{describe,expect,it}from'vitest';
+import{LEGACY_WATCHLIST_KEY,WATCHLIST_KEY,compareScenario,instrumentId,makeSnapshot,readWatchlist,type WatchItem}from'../src/ProductContinuity.js';
+const memory=(initial:Record<string,string>={})=>{const data={...initial};return{getItem:(k:string)=>data[k]??null,setItem:(k:string,v:string)=>{data[k]=v},removeItem:(k:string)=>{delete data[k]},data}};
+describe('continuità locale',()=>{
+ it('distingue ticker uguali su mercati diversi',()=>{expect(instrumentId('ABC',{providerId:'p',assetClass:'equity',exchange:'NYSE'})).not.toBe(instrumentId('ABC',{providerId:'p',assetClass:'equity',exchange:'LSE'}))});
+ it('ignora storage danneggiato',()=>{const s=memory({[WATCHLIST_KEY]:'{no'});expect(readWatchlist(s as any).items).toEqual([]);expect(readWatchlist(s as any).warning).toMatch(/Impossibile/)});
+ it('migra record legacy senza inventare identità',()=>{const s=memory({[LEGACY_WATCHLIST_KEY]:JSON.stringify([{symbol:'AAPL',exchange:'Nasdaq',assetClass:'equity',addedAt:new Date().toISOString(),reason:'Da approfondire'}])});const item=readWatchlist(s as any).items[0];expect(item.note).toBe('');expect(item.ambiguous).toBe(true)});
+ it('confronta solo timeframe compatibili',()=>{const data:any={meta:{provider:'Test',lastData:new Date().toISOString()},analysis:{trend:'Laterale',narrative:'Range',technicalScenario:{title:'Scenario laterale',summary:'Range',confirmationConditions:[],invalidationConditions:[],dataQuality:{status:'complete'}}}};const item:WatchItem={id:'x',symbol:'X',exchange:'TEST',assetClass:'equity',providerId:'test',addedAt:new Date().toISOString(),note:'',scenario:makeSnapshot(data,'1D')};expect(compareScenario(item,data,'1W').title).toBe('Orizzonte diverso');data.analysis.trend='Rialzista';expect(compareScenario(item,data,'1D').status).toBe('changed')});
+});
