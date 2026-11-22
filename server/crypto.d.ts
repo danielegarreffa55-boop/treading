@@ -93,4 +93,6 @@ export declare function searchCrypto(query: string): {
     quoteAsset: "EUR" | "USDT";
     marketType: string;
     provider: string;
+    providerId: string;
+    providerSymbol: "BTC/EUR" | "BTC/USDT" | "ETH/EUR" | "ETH/USDT" | "SOL/USDT";
 }[];

@@ -44,6 +44,7 @@ const presets = [
     type: "Fondo comune",
   },
 ];
+const enrichedPresets=presets.map(item=>({...item,providerId:'yahoo',providerSymbol:item.symbol,assetClass:item.type.includes('ETF')?'etf':item.type.includes('Fondo')?'mutualfund':'equity'}));
 const ranges: Record<string, { days: number; interval: any }> = {
   "1m": { days: 1, interval: "1m" },
   "5m": { days: 5, interval: "5m" },
@@ -103,8 +104,12 @@ function closedBars(b: Bar[], tf: string) {
     ? b.slice(0, -1)
     : b;
 }
-async function load(symbol: string, tf: string) {
+type ExpectedIdentity={providerId?:string;exchange?:string;assetClass?:string};
+async function load(symbol: string, tf: string, expected:ExpectedIdentity={}) {
+  if(expected.providerId&&!['yahoo','binance'].includes(expected.providerId))throw new Error(`Provider non supportato: ${expected.providerId}`);
   const cryptoPair=findCryptoPair(symbol);
+  if(expected.providerId==='binance'&&!cryptoPair)throw new Error(`Identificativo Binance non risolvibile: ${symbol}`);
+  if(expected.providerId==='yahoo'&&cryptoPair)throw new Error(`Identificativo Yahoo non valido: ${symbol}`);
   if(cryptoPair){const key=cryptoCacheKey(cryptoPair.symbol,tf),hit=cacheGet(key);if(hit)return{...hit,cache:'hit'};const loaded=await loadBinanceSpot(cryptoPair.symbol,tf),bars=loaded.closedBars,lastData=new Date(bars.at(-1)!.time*1000).toISOString(),value={bars,currentBar:loaded.currentBar,meta:{...loaded.meta,lastData}};cacheSet(key,value,tf==='1m'?15000:60000);return{...value,cache:'miss'};}
   const key = cacheKey(symbol, tf),
     hit = cacheGet(key);
@@ -133,6 +138,9 @@ async function load(symbol: string, tf: string) {
     bars,
     meta: {
       provider: "Yahoo Finance",
+      providerId: "yahoo",
+      providerSymbol: symbol.toUpperCase(),
+      assetClass: String(rows.meta.instrumentType||expected.assetClass||'unknown').toLowerCase(),
       currency: rows.meta.currency,
       exchange: rows.meta.fullExchangeName || rows.meta.exchangeName,
       instrumentType: rows.meta.instrumentType,
@@ -145,12 +153,14 @@ async function load(symbol: string, tf: string) {
       demo: false,
     },
   };
+  if(expected.exchange&&value.meta.exchange&&expected.exchange.toLowerCase()!==String(value.meta.exchange).toLowerCase())throw new Error(`Mercato non corrispondente: richiesto ${expected.exchange}, ricevuto ${value.meta.exchange}`);
   cacheSet(key, value);
   return { ...value, cache: "miss" };
 }
 app.get("/api/health", (_, r) =>
   r.json({
     ok: true,
+    appId: 'financial-ai-analyst',
     provider: dataProvider.id,
     optionalProviders,
     cacheEntries: cache.size,
@@ -159,7 +169,7 @@ app.get("/api/health", (_, r) =>
 );
 app.get("/api/search", async (req, res) => {
   const q = String(req.query.q || "").trim();
-  if (!q) return res.json([...presets,...searchCrypto('')]);
+  if (!q) return res.json([...enrichedPresets,...searchCrypto('')]);
   const crypto=searchCrypto(q);if(crypto.length)return res.json(crypto);
   try {
     res.json(await dataProvider.search(q));
@@ -171,17 +181,18 @@ app.get("/api/search", async (req, res) => {
 });
 app.get('/api/company/:symbol',async(req,res)=>{try{res.json(await getCompanyIntelligence(String(req.params.symbol)))}catch(e){res.status(502).json({error:'Dati aziendali non disponibili',detail:String(e),demo:false})}});
 app.get("/api/chart", async (req, res) => {
-  const symbol = String(req.query.symbol || "AAPL"),
+  const symbol = String(req.query.providerSymbol || req.query.symbol || "AAPL"),
     tf = String(req.query.timeframe || "1D"),
-    mode = String(req.query.mode || "trading");
+    mode = String(req.query.mode || "trading"),
+    expected={providerId:String(req.query.providerId||''),exchange:String(req.query.exchange||''),assetClass:String(req.query.assetClass||'')};
   try {
-    const current = await load(symbol, tf),
+    const current = await load(symbol, tf,expected),
       requested =
         mode === "investment" ? ["1D", "1W", "1M"] : ["15m", "1h", "4h", "1D"],
       frames: any[] = [];
     for (const frame of requested) {
       try {
-        const x = frame === tf ? current : await load(symbol, frame);
+        const x = frame === tf ? current : await load(symbol, frame,expected);
         const a = analyze(x.bars, mode, frame,x.meta.assetClass==='crypto'?'24x7':'exchange-session');
         frames.push({
           timeframe: frame,
@@ -209,7 +220,7 @@ app.get("/api/chart", async (req, res) => {
     res.json({
       symbol,
       timeframe: tf,
-      contextId: `${current.meta.providerId||'yahoo'}|${current.meta.marketType||'exchange'}|${symbol}|${tf}|${current.meta.lastData}`,
+      contextId: `${current.meta.providerId}|${current.meta.assetClass}|${current.meta.exchange}|${current.meta.providerSymbol||symbol}|${tf}|${current.meta.lastData}`,
       bars: current.bars,
       analysis: {
         ...analysis,
@@ -220,7 +231,7 @@ app.get("/api/chart", async (req, res) => {
           ? "I timeframe non sono concordi: il segnale va interpretato con cautela."
           : "I timeframe disponibili sono concordi sul regime principale.",
       },
-      meta: { ...current.meta, cache: current.cache },
+      meta: { ...current.meta, instrumentId:`${current.meta.providerId}|${current.meta.assetClass}|${current.meta.exchange}|${current.meta.providerSymbol||symbol}`.toLowerCase(), cache: current.cache },
     });
   } catch (e) {
     res
@@ -311,7 +322,10 @@ const here = path.dirname(fileURLToPath(import.meta.url)),
 app.use(express.static(dist));
 app.use((_, r) => r.sendFile(path.join(dist, "index.html")));
 const port = Number(process.env.PORT || 8000);
-if (process.env.NODE_ENV !== "test")
-  app.listen(port, () =>
-    console.log(`Financial AI Analyst: http://localhost:${port}`),
-  );
+if (process.env.NODE_ENV !== "test") {
+  const server=app.listen(port,'127.0.0.1', () => console.log(`Financial AI Analyst: http://127.0.0.1:${port}`));
+  // Alcuni launcher Windows rilasciano l'handle della socket Node: il timer mantiene
+  // esplicitamente vivo il processo e viene rimosso quando il server si chiude.
+  const keepAlive=setInterval(()=>undefined,60_000);
+  server.on('close',()=>clearInterval(keepAlive));
+}

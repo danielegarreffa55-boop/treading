@@ -4,6 +4,9 @@ export type InstrumentSearch = {
     exchange: string;
     type: string;
     exchangeCode?: string;
+    providerId: string;
+    providerSymbol: string;
+    assetClass: string;
 };
 export interface FinancialDataProvider {
     id: string;
@@ -19,6 +22,9 @@ export declare class YahooProvider implements FinancialDataProvider {
         exchange: any;
         type: any;
         exchangeCode: any;
+        providerId: string;
+        providerSymbol: any;
+        assetClass: string;
     }[]>;
     chart(symbol: string, options: any): Promise<import("yahoo-finance2/modules/chart").ChartResultObject>;
 }

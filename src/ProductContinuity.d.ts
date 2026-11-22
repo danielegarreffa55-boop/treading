@@ -16,6 +16,7 @@ export type ScenarioSnapshot = {
 export type WatchItem = {
     id: string;
     symbol: string;
+    providerSymbol?: string;
     exchange: string;
     assetClass: string;
     providerId: string;

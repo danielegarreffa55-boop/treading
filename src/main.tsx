@@ -7,7 +7,7 @@ import {
   HistogramSeries,
   ColorType,
 } from "lightweight-charts";
-import { SearchBox } from "./SearchBox";
+import { SearchBox, type SearchResult } from "./SearchBox";
 import { HelpTip, InfoGuide } from "./InfoGuide";
 import { AIChat } from "./AIChat";
 import {IndicatorPanels} from "./IndicatorPanels";
@@ -160,7 +160,8 @@ function ScenarioPanel({
 }
 function App() {
   const chartEl = useRef<HTMLDivElement>(null);
-  const [symbol, setSymbol] = useState("AAPL"),
+  const [instrument,setInstrument]=useState<SearchResult>({symbol:'AAPL',name:'Apple Inc.',exchange:'',type:'Azione',providerId:'yahoo',providerSymbol:'AAPL',assetClass:'equity'}),
+    symbol=instrument.symbol,
     [q, setQ] = useState("AAPL"),
     [tf, setTf] = useState("1D"),
     [mode, setMode] = useState("trading"),
@@ -179,12 +180,13 @@ function App() {
     [aiIndicators, setAiIndicators] = useState<string[]>([]),
     [aiLevels, setAiLevels] = useState<string[]>([]),
     [aiReasons, setAiReasons] = useState<Record<string, string>>({});
+  useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem('financial-analyst.onboarding.v1')||'{}');document.documentElement.dataset.experience=saved.experience||'intermediate'}catch{document.documentElement.dataset.experience='intermediate'}},[]);
   useEffect(() => {
     const controller=new AbortController();
     setError("");
     setData(undefined);
     fetch(
-      `/api/chart?symbol=${encodeURIComponent(symbol)}&timeframe=${tf}&mode=${mode}`,
+      `/api/chart?symbol=${encodeURIComponent(symbol)}&providerSymbol=${encodeURIComponent(instrument.providerSymbol||symbol)}&providerId=${encodeURIComponent(instrument.providerId||'')}&exchange=${encodeURIComponent(instrument.exchange||'')}&assetClass=${encodeURIComponent(instrument.assetClass||'')}&timeframe=${tf}&mode=${mode}`,
       {signal:controller.signal},
     )
       .then(async (r) => {
@@ -194,7 +196,7 @@ function App() {
       })
       .catch((e) => {if(e.name!=='AbortError')setError(e.message)});
     return()=>controller.abort();
-  }, [symbol, tf, mode]);
+  }, [instrument, tf, mode]);
   useEffect(()=>{localStorage.setItem('showRsi',String(showRsi));localStorage.setItem('showMacd',String(showMacd))},[showRsi,showMacd]);
   useEffect(()=>{if(!data?.meta?.streamUrl){setLive({status:'off'});return}let socket:WebSocket|undefined,timer:number|undefined,attempt=0,stopped=false,lastEvent=0;const connect=()=>{if(stopped)return;setLive(x=>({...x,status:'connecting'}));socket=new WebSocket(data.meta.streamUrl);socket.onopen=()=>{attempt=0;setLive(x=>({...x,status:'live'}))};socket.onmessage=e=>{try{const m=JSON.parse(e.data),event=Number(m.E||0);if(event<=lastEvent)return;lastEvent=event;if(m.k)setLive({status:'live',price:Number(m.k.c),eventTime:event})}catch{}};socket.onerror=()=>socket?.close();socket.onclose=()=>{if(stopped)return;setLive(x=>({...x,status:'fallback'}));timer=window.setTimeout(connect,Math.min(30000,1000*2**attempt++))}};connect();return()=>{stopped=true;if(timer)clearTimeout(timer);socket?.close()}},[data?.contextId]);
   useEffect(() => {
@@ -399,7 +401,7 @@ function App() {
           value={q}
           onChange={setQ}
           onSelect={(r) => {
-            setSymbol(r.symbol);
+            setInstrument(r);
             setQ(r.symbol);
             setView('chart');
             if(r.type.toLowerCase().includes('crypto')&&!['1m','5m','15m','1h','4h','1D','1W'].includes(tf))setTf('1D');
@@ -496,7 +498,7 @@ function App() {
           <label><input type="checkbox" checked={showMacd} onChange={e=>setShowMacd(e.target.checked)}/> MACD</label>
         </div>
       </section>}
-      {view==='watchlist'?<WatchlistView data={data} symbol={symbol} timeframe={tf} onSelect={(item:WatchItem)=>{setSymbol(item.symbol);setQ(item.symbol);setView('chart')}}/>:error ? (
+      {view==='watchlist'?<WatchlistView data={data} symbol={symbol} timeframe={tf} onSelect={(item:WatchItem)=>{if(item.ambiguous){setQ(item.symbol);return}setInstrument({symbol:item.symbol,name:item.symbol,exchange:item.exchange,type:item.assetClass,providerId:item.providerId,providerSymbol:item.providerSymbol,assetClass:item.assetClass});setQ(item.symbol);setView('chart')}}/>:error ? (
         <div className="error">
           {error}. Nessun dato simulato è stato mostrato.
         </div>

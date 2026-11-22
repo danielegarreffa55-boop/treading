@@ -3,7 +3,7 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $projectRoot
 $healthUrl = 'http://127.0.0.1:8000/api/health'
 $appUrl = 'http://127.0.0.1:8000'
-function Test-AppHealth { try { $response = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2; return $response.ok -eq $true } catch { return $false } }
+function Test-AppHealth { try { $response = Invoke-RestMethod -Uri $healthUrl -TimeoutSec 2; return $response.ok -eq $true -and $response.appId -eq 'financial-ai-analyst' } catch { return $false } }
 try {
   $node = Get-Command node -ErrorAction SilentlyContinue
   if (-not $node) { throw 'Node.js 22 o superiore non è installato o non è nel PATH.' }

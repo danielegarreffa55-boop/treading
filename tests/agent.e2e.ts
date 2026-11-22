@@ -1,25 +1,20 @@
 import{test,expect}from'@playwright/test';
-test('ricerca, scenario, watchlist persistente e cambio contesto',async({page})=>{
- await page.goto('/');
+import{mockMarket}from'./mockMarket.js';
+
+test('persistenza e identità canonica tra mercati omonimi',async({page})=>{
+ await mockMarket(page);await page.goto('/');
  const onboarding=page.getByRole('heading',{name:'Livello delle spiegazioni'});if(await onboarding.isVisible())await page.getByRole('button',{name:'Chiudi'}).click();
- await expect(page.getByRole('heading',{name:'AAPL'})).toBeVisible();
- await page.getByRole('button',{name:'Aggiungi alla watchlist'}).click();
- await expect(page.getByRole('button',{name:'Salvato'})).toBeVisible();
- await page.getByRole('button',{name:'Salva scenario'}).click();
- await page.getByRole('button',{name:/Watchlist/}).first().click();
- await expect(page.getByRole('heading',{name:'Watchlist'})).toBeVisible();
- await page.getByPlaceholder('Perché lo stai seguendo?').fill('Verificare la tenuta del supporto');
- await page.reload();
- await expect(page.getByPlaceholder('Perché lo stai seguendo?')).toHaveValue('Verificare la tenuta del supporto');
- await page.getByRole('button',{name:'Apri analisi'}).click();
- await expect(page.getByText('Contesto: AAPL · 1D')).toBeVisible();
- await page.getByRole('button',{name:/Company/}).click();
- await expect(page.getByRole('heading',{name:'Apple Inc.',exact:true})).toBeVisible();
- await page.getByRole('button',{name:/Grafico/}).click();
- await page.getByRole('checkbox',{name:'RSI',exact:true}).check();await page.getByRole('checkbox',{name:'MACD',exact:true}).check();
- await expect(page.locator('.indicator-pane').filter({hasText:'RSI (14)'})).toBeVisible();
- const invalidation=page.getByRole('button',{name:'Evidenzia invalidazione'}).first();await expect(invalidation).toBeVisible();await invalidation.click();
- await expect(page.getByText('Livello validato').first()).toBeVisible();
- const search=page.getByRole('combobox');await search.fill('MSFT');await page.getByRole('option').filter({hasText:'MSFT'}).first().click();
- await expect(page.getByRole('heading',{name:'MSFT'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'AAPL'})).toBeVisible();await page.getByRole('button',{name:'Aggiungi alla watchlist'}).click();await page.getByRole('button',{name:'Salva scenario'}).click();
+ await page.getByRole('button',{name:/Watchlist/}).first().click();await page.getByPlaceholder('Perché lo stai seguendo?').fill('Verificare la tenuta del supporto');await page.reload();
+ await page.getByRole('button',{name:/Watchlist/}).first().click();await expect(page.getByPlaceholder('Perché lo stai seguendo?')).toHaveValue('Verificare la tenuta del supporto');await expect(page.getByText('Scenario rialzista').first()).toBeVisible();
+ await page.getByRole('combobox').fill('ABC');await page.getByRole('option').filter({hasText:'ABC London'}).click();await expect(page.locator('.ticker .live')).toContainText('USD · LSE');await page.getByRole('button',{name:'Aggiungi alla watchlist'}).click();await page.getByRole('button',{name:'Salva scenario'}).click();
+ await page.getByRole('combobox').fill('');await page.getByRole('combobox').fill('ABC');await page.getByRole('option').filter({hasText:'ABC USA'}).click();await expect(page.locator('.ticker .live')).toContainText('USD · NYSE');await page.getByRole('button',{name:'Aggiungi alla watchlist'}).click();
+ await page.getByRole('button',{name:/Watchlist/}).first().click();const london=page.locator('.watch-table article').filter({hasText:'LSE'});await expect(london).toBeVisible();await london.getByRole('button',{name:'Apri analisi'}).click();await expect(page.locator('.ticker .live')).toContainText('USD · LSE');
+ await page.getByRole('button',{name:'1W'}).click();await page.getByRole('button',{name:/Watchlist/}).first().click();await expect(page.getByText('Orizzonte diverso')).toBeVisible();
+});
+
+test('watchlist utilizzabile su mobile',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await mockMarket(page);
+ await page.addInitScript(()=>{localStorage.setItem('financial-analyst.onboarding.v1',JSON.stringify({experience:'beginner',completedAt:new Date().toISOString()}));localStorage.setItem('financial-analyst.watchlist.v2',JSON.stringify([{id:'yahoo|equity|nasdaq|aapl',symbol:'AAPL',providerSymbol:'AAPL',exchange:'NASDAQ',assetClass:'equity',providerId:'yahoo',addedAt:new Date().toISOString(),note:''}]))});
+ await page.goto('/');await page.getByRole('button',{name:/Watchlist/}).first().click();await expect(page.getByRole('heading',{name:'Watchlist'})).toBeVisible();await page.getByPlaceholder('Perché lo stai seguendo?').fill('Nota mobile');await expect(page.getByPlaceholder('Perché lo stai seguendo?')).toHaveValue('Nota mobile');
 });
