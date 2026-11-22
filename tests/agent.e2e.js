@@ -20,6 +20,7 @@ test('persistenza e identità canonica tra mercati omonimi', async ({ page }) =>
     await expect(page.locator('.ticker .live')).toContainText('USD · LSE');
     await page.getByRole('button', { name: 'Aggiungi alla watchlist' }).click();
     await page.getByRole('button', { name: 'Salva scenario' }).click();
+    await page.getByRole('combobox').fill('');
     await page.getByRole('combobox').fill('ABC');
     await page.getByRole('option').filter({ hasText: 'ABC USA' }).click();
     await expect(page.locator('.ticker .live')).toContainText('USD · NYSE');
