@@ -1,0 +1,4 @@
+{
+  "compilerOptions": {"composite":true,"skipLibCheck":true,"module":"NodeNext","moduleResolution":"NodeNext","allowSyntheticDefaultImports":true,"strict":true,"target":"ES2022"},
+  "include": ["vite.config.ts", "playwright.config.ts", "server/**/*.ts", "tests/**/*.ts", "src/glossary.ts"]
+}

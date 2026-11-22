@@ -1,0 +1,2 @@
+import { defineConfig, devices } from '@playwright/test';
+export default defineConfig({ testDir: './tests', testMatch: '**/*.e2e.ts', timeout: 90000, use: { baseURL: 'http://127.0.0.1:8137', trace: 'retain-on-failure' }, webServer: { command: 'set PORT=8137&& npm.cmd start', url: 'http://127.0.0.1:8137/api/health', reuseExistingServer: false, timeout: 30000 }, projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }] });
