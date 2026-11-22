@@ -12,6 +12,10 @@ Avvio manuale: `npm.cmd install`, `npm.cmd run build`, `npm.cmd start`.
 
 La schermata principale è un **Dossier di ricerca**: conclusione, prove favorevoli, controprove/rischi, prossimo controllo, fonte e timestamp precedono il grafico. **Riesami** conserva nota e scenario per confrontare ciò che si pensava con i dati correnti. Il prodotto resta una beta locale: non è un terminale professionale vendibile e i feed correnti non sono autorizzati per un'offerta commerciale.
 
+## Panoramica “Cosa è cambiato”
+
+La home aggiorna manualmente l'intera watchlist tramite un batch deduplicato e ordina i risultati per rilevanza. Distingue cambiamenti, stabilità, primo controllo, dati insufficienti/non aggiornati e fallimenti. Un errore conserva l'ultimo controllo riuscito. Novità e stato letto sono locali; **Storico** conserva fino a 200 eventi e l'export Markdown contiene identità, tesi, evidenza e fonte. Non esistono aggiornamenti o notifiche quando l'app è chiusa.
+
 ## Funzioni MVP
 
 - Autocomplete reale per ticker/nome (ISIN solo se il provider lo risolve)

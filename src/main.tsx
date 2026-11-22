@@ -13,10 +13,12 @@ import { AIChat } from "./AIChat";
 import {IndicatorPanels} from "./IndicatorPanels";
 import{CompanyPanel}from'./CompanyPanel';
 import{AppIcon,Onboarding,PreferencesMenu,WatchlistControl,WatchlistView,type WatchItem}from'./ProductContinuity';
+import{MonitoringView}from'./Monitoring';
 import "./style.css";
 import'./design-system.css';
 import './research-terminal.css';
 import './evidence-ledger.css';
+import './monitoring.css';
 const statusLabel: Record<string, string> = {
   bullish: "Rialzista",
   bearish: "Ribassista",
@@ -167,7 +169,7 @@ function App() {
     [q, setQ] = useState("AAPL"),
     [tf, setTf] = useState("1D"),
     [mode, setMode] = useState("trading"),
-    [view,setView]=useState<'chart'|'company'|'watchlist'>('chart'),
+    [view,setView]=useState<'overview'|'chart'|'company'|'watchlist'|'history'>('overview'),
     [data, setData] = useState<any>(),
     [error, setError] = useState(""),
     [auto, setAuto] = useState(true),
@@ -390,7 +392,7 @@ function App() {
   };
   return (
     <main className="app-shell">
-      <nav className="side-nav" aria-label="Navigazione principale"><div className="side-mark">F</div><button className={view==='chart'?'active':''} onClick={()=>setView('chart')}><AppIcon name="chart"/>Dossier</button>{data?.meta?.assetClass!=='crypto'&&<button className={view==='company'?'active':''} onClick={()=>setView('company')}><AppIcon name="company"/>Fondamentali</button>}<button className={view==='watchlist'?'active':''} onClick={()=>setView('watchlist')}><AppIcon name="watchlist"/>Riesami</button><small>RESEARCH<br/>LEDGER</small></nav>
+      <nav className="side-nav" aria-label="Navigazione principale"><div className="side-mark">F</div><button className={view==='overview'?'active':''} onClick={()=>setView('overview')}><AppIcon name="chart"/>Panoramica</button><button className={view==='watchlist'?'active':''} onClick={()=>setView('watchlist')}><AppIcon name="watchlist"/>Watchlist</button><button className={view==='chart'||view==='company'?'active':''} onClick={()=>setView('chart')}><AppIcon name="search"/>Ricerca</button><button className={view==='history'?'active':''} onClick={()=>setView('history')}><AppIcon name="company"/>Storico</button><small>CHANGE<br/>MONITOR</small></nav>
       <header>
         <div className="brand">
           <span>F</span>
@@ -427,9 +429,9 @@ function App() {
           <span>?</span> Info
         </button>
         <PreferencesMenu />
-        {data&&view!=='watchlist'&&<WatchlistControl symbol={symbol} meta={data.meta} data={data} timeframe={tf} onOpen={()=>setView('watchlist')}/>}
+        {data&&(view==='chart'||view==='company')&&<WatchlistControl symbol={symbol} meta={data.meta} data={data} timeframe={tf} onOpen={()=>setView('watchlist')}/>}
       </header>
-      {view!=='watchlist'&&<section className="ticker">
+      {(view==='chart'||view==='company')&&<section className="ticker">
         <div>
           <h1>{symbol}</h1>
           <span className="instrument-market">
@@ -500,7 +502,7 @@ function App() {
           <label><input type="checkbox" checked={showMacd} onChange={e=>setShowMacd(e.target.checked)}/> MACD</label>
         </div>
       </section>}
-      {view==='watchlist'?<WatchlistView data={data} symbol={symbol} timeframe={tf} onSelect={(item:WatchItem)=>{if(item.ambiguous){setQ(item.symbol);return}setInstrument({symbol:item.symbol,name:item.symbol,exchange:item.exchange,type:item.assetClass,providerId:item.providerId,providerSymbol:item.providerSymbol,assetClass:item.assetClass});setQ(item.symbol);setView('chart')}}/>:error ? (
+      {view==='overview'||view==='history'?<MonitoringView historyOnly={view==='history'} onOpen={(item:WatchItem)=>{if(item.ambiguous){setQ(item.symbol);setView('chart');return}setInstrument({symbol:item.symbol,name:item.symbol,exchange:item.exchange,type:item.assetClass,providerId:item.providerId,providerSymbol:item.providerSymbol,assetClass:item.assetClass});setQ(item.symbol);setView('chart')}}/>:view==='watchlist'?<WatchlistView data={data} symbol={symbol} timeframe={tf} onSelect={(item:WatchItem)=>{if(item.ambiguous){setQ(item.symbol);return}setInstrument({symbol:item.symbol,name:item.symbol,exchange:item.exchange,type:item.assetClass,providerId:item.providerId,providerSymbol:item.providerSymbol,assetClass:item.assetClass});setQ(item.symbol);setView('chart')}}/>:error ? (
         <div className="error">
           {error}. Nessun dato simulato è stato mostrato.
         </div>

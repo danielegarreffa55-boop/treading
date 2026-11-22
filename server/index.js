@@ -193,6 +193,22 @@ app.get('/api/company/:symbol', async (req, res) => { try {
 catch (e) {
     res.status(502).json({ error: 'Dati aziendali non disponibili', detail: String(e), demo: false });
 } });
+app.use('/api/monitor/refresh', (req, _res, next) => { if (Array.isArray(req.body?.items))
+    req.body.items = req.body.items.slice(0, 20); next(); });
+app.post('/api/monitor/refresh', async (req, res) => { const raw = Array.isArray(req.body?.items) ? req.body.items.slice(0, 50) : [], unique = new Map(); for (const item of raw) {
+    const providerSymbol = String(item?.providerSymbol || item?.symbol || ''), timeframe = String(item?.timeframe || '1D'), key = [item?.providerId, item?.assetClass, item?.exchange, providerSymbol, timeframe].join('|').toLowerCase();
+    if (providerSymbol && !unique.has(key))
+        unique.set(key, { ...item, providerSymbol, timeframe, key });
+} const queue = [...unique.values()], results = []; let cursor = 0; const worker = async () => { while (cursor < queue.length) {
+    const item = queue[cursor++];
+    try {
+        const current = await load(item.providerSymbol, item.timeframe, { providerId: String(item.providerId || ''), exchange: String(item.exchange || ''), assetClass: String(item.assetClass || '') }), analysis = analyze(current.bars, 'investment', item.timeframe, current.meta.assetClass === 'crypto' ? '24x7' : 'exchange-session'), frames = [{ timeframe: item.timeframe, trend: analysis.trend, secondary: analysis.secondary, lastData: current.meta.lastData }], technicalScenario = buildTechnicalScenario(analysis, item.timeframe, frames, current.meta), contextId = `${current.meta.providerId}|${current.meta.assetClass}|${current.meta.exchange}|${current.meta.providerSymbol || item.providerSymbol}|${item.timeframe}|${current.meta.lastData}`;
+        results.push({ key: item.key, itemId: item.itemId, ok: true, data: { symbol: item.symbol, timeframe: item.timeframe, contextId, bars: current.bars.slice(-3), analysis: { ...analysis, technicalScenario, multiTimeframe: frames, conflict: false, conflictText: 'Controllo singolo timeframe.' }, meta: { ...current.meta, instrumentId: `${current.meta.providerId}|${current.meta.assetClass}|${current.meta.exchange}|${current.meta.providerSymbol || item.providerSymbol}`.toLowerCase(), cache: current.cache } } });
+    }
+    catch (e) {
+        results.push({ key: item.key, itemId: item.itemId, ok: false, error: 'Aggiornamento non riuscito', detail: String(e) });
+    }
+} }; await Promise.all([worker(), worker()]); res.json({ checkedAt: new Date().toISOString(), requested: raw.length, deduplicated: queue.length, results }); });
 app.get("/api/chart", async (req, res) => {
     const symbol = String(req.query.providerSymbol || req.query.symbol || "AAPL"), tf = String(req.query.timeframe || "1D"), mode = String(req.query.mode || "trading"), expected = { providerId: String(req.query.providerId || ''), exchange: String(req.query.exchange || ''), assetClass: String(req.query.assetClass || '') };
     try {

@@ -1,5 +1,11 @@
 # Backlog orientato alla vendita
 
+## Offerta iniziale aggiornata
+
+**Financial AI Analyst Monitor**: massimo 20 strumenti, refresh manuale quando l'app è aperta, priorità deterministica, ultimo controllo riuscito preservato dopo un errore, storico locale fino a 200 eventi, export Markdown e stampa. Nessun aggiornamento o notifica ad app chiusa. Prezzo da testare: €15/mese o €150/anno; non vendibile finché i diritti dei feed non sono approvati.
+
+Completato nella verticale: Panoramica multi-strumento, endpoint batch deduplicato con due worker, stati cambiato/stabile/primo controllo/parziale/vecchio/fallito, letto/non letto, storico locale, export e navigazione Panoramica/Watchlist/Ricerca/Storico.
+
 ## Demo indispensabile
 
 | Funzione | Bisogno/comportamento | Dipendenza | Stima | Accettazione |

@@ -4,7 +4,9 @@ Verifica: 22 novembre 2026. Le ipotesi commerciali richiedono interviste reali; 
 
 ## Decisione condivisa dei tre profili
 
-Cliente prioritario: newsletter o micro-redazione finanziaria italiana con 1–3 autori. Ogni settimana ricostruisce grafici, note, fonti e versione precedente prima di aggiornare una tesi. L'offerta è: **preparare e riesaminare un dossier verificabile con conclusione, prove favorevoli e contrarie, invalidazione, fonte, timestamp e confronto con la versione salvata**.
+Cliente prioritario aggiornato: investitore autonomo evoluto che segue 10–20 strumenti e paga già strumenti di ricerca. L'offerta è: **all'apertura, aggiornare manualmente l'intera lista e capire in meno di due minuti che cosa richiede attenzione, perché conta rispetto alla tesi salvata, come verificarlo e quali strumenti sono stabili**. L'analista/autore indipendente resta il secondo segmento: condivide fonti, storico ed export, ma richiede un output più professionale.
+
+La priorità è cambiata dopo la prova del monitor multi-strumento: il prodotto attuale può creare un ritorno 2–3 volte a settimana per un investitore senza introdurre collaborazione, ruoli o reporting editoriale. Il dossier resta l'approfondimento, non la home.
 
 Il segmento col ticket potenziale maggiore è lo studio di consulenza/wealth management (€200–500 per utente/mese come ordine di grandezza), ma oggi è fuori portata: richiede feed licenziati, report cliente, account e isolamento, audit log, privacy/GDPR, integrazioni e revisione MiFID. Il migliore primo pilot è invece la micro-redazione: buyer e utente spesso coincidono, il lavoro è settimanale e il ciclo di vendita è breve.
 

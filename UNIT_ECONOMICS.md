@@ -1,5 +1,9 @@
 # Unit economics
 
+## Ipotesi Monitor — novembre 2026
+
+Prezzo da testare: €15/mese o €150/anno, massimo 20 strumenti, aggiornamento manuale e storico locale limitato. Non è un prezzo approvato. A €15, costi diretti dovrebbero restare sotto €4–5 per utente/mese e il supporto sotto circa 15 minuti per utente/mese. Il costo dei dati commerciali resta ignoto e blocca la vendita.
+
 Stime esplorative, non dati certi. Nessun prezzo è stato deciso.
 
 ## Ipotesi da testare

@@ -1,5 +1,9 @@
 # Scheda beta — Milestone 1.1
 
+## Prova Panoramica
+
+Prepara una watchlist di almeno tre strumenti, con nota e scenario. Alla riapertura usa **Panoramica → Aggiorna tutti** e verifica se riesci a rispondere senza aprire ogni dossier: che cosa è cambiato, perché conta, come verificarlo e che effetto ha sulla tesi. Segna una novità come vista, ripeti l'aggiornamento e controlla che non venga duplicata in **Storico**. Prova anche **Esporta Markdown**. Gli aggiornamenti sono manuali e non funzionano ad app chiusa.
+
 ## Invito
 
 Prova Financial Analyst con uno strumento che segui davvero. Non valuta la tua performance e non propone operazioni: serve a capire se il flusso ricerca → scenario → motivo → ritorno è utile.
