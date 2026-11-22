@@ -8,6 +8,10 @@ Doppio clic su `Avvia Financial AI Analyst.cmd`. Il launcher verifica Node.js, d
 
 Avvio manuale: `npm.cmd install`, `npm.cmd run build`, `npm.cmd start`.
 
+## Verticale Evidence Ledger
+
+La schermata principale è un **Dossier di ricerca**: conclusione, prove favorevoli, controprove/rischi, prossimo controllo, fonte e timestamp precedono il grafico. **Riesami** conserva nota e scenario per confrontare ciò che si pensava con i dati correnti. Il prodotto resta una beta locale: non è un terminale professionale vendibile e i feed correnti non sono autorizzati per un'offerta commerciale.
+
 ## Funzioni MVP
 
 - Autocomplete reale per ticker/nome (ISIN solo se il provider lo risolve)

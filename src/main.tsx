@@ -16,6 +16,7 @@ import{AppIcon,Onboarding,PreferencesMenu,WatchlistControl,WatchlistView,type Wa
 import "./style.css";
 import'./design-system.css';
 import './research-terminal.css';
+import './evidence-ledger.css';
 const statusLabel: Record<string, string> = {
   bullish: "Rialzista",
   bearish: "Ribassista",
@@ -158,6 +159,7 @@ function ScenarioPanel({
     </section>
   );
 }
+function ResearchBrief({data,symbol,timeframe,onOpenLog}:{data:any;symbol:string;timeframe:string;onOpenLog:()=>void}){const s=data.analysis.technicalScenario,quality=s?.dataQuality?.status||'partial',support=s?.supportingSignals?.slice(0,2)||[],risks=s?.conflictingSignals?.slice(0,2)||[];return <section className="research-brief" aria-labelledby="brief-title"><header><div><p>DOSSIER DI RICERCA · {timeframe}</p><h1 id="brief-title">{symbol} <span>{data.meta.exchange}</span></h1></div><div className={`brief-quality ${quality}`}><b>{quality==='complete'?'Dati completi':quality==='stale'?'Dati non aggiornati':'Dati parziali'}</b><span>{data.meta.provider} · {new Date(data.meta.lastData).toLocaleString('it-IT')}</span></div></header><div className="brief-grid"><article className="brief-conclusion"><small>LETTURA ATTUALE</small><h2>{s?.title||data.analysis.trend}</h2><p>{s?.summary||data.analysis.narrative}</p></article><article><small>PROVE A FAVORE</small>{support.length?support.map((x:any)=><p key={x.id}>{x.description}</p>):<p>{data.analysis.secondary[0]||'Nessuna evidenza forte disponibile.'}</p>}</article><article><small>CONTROPROVE / RISCHI</small>{risks.length?risks.map((x:any)=><p key={x.id}>{x.description}</p>):<p>Nessun conflitto quantitativo forte; verificare comunque le condizioni di invalidazione.</p>}</article><article className="brief-next"><small>PROSSIMO CONTROLLO</small><p>{s?.invalidationConditions?.[0]?.description||'Riesaminare quando cambia il regime di mercato.'}</p><button onClick={onOpenLog}>Apri registro tesi</button></article></div></section>}
 function App() {
   const chartEl = useRef<HTMLDivElement>(null);
   const [instrument,setInstrument]=useState<SearchResult>({symbol:'AAPL',name:'Apple Inc.',exchange:'',type:'Azione',providerId:'yahoo',providerSymbol:'AAPL',assetClass:'equity'}),
@@ -388,7 +390,7 @@ function App() {
   };
   return (
     <main className="app-shell">
-      <nav className="side-nav" aria-label="Navigazione principale"><div className="side-mark">F</div><button className={view==='chart'?'active':''} onClick={()=>setView('chart')}><AppIcon name="chart"/>Grafico</button>{data?.meta?.assetClass!=='crypto'&&<button className={view==='company'?'active':''} onClick={()=>setView('company')}><AppIcon name="company"/>Company</button>}<button className={view==='watchlist'?'active':''} onClick={()=>setView('watchlist')}><AppIcon name="watchlist"/>Watchlist</button><button disabled><AppIcon name="search"/>Screener</button><small>RESEARCH<br/>TERMINAL</small></nav>
+      <nav className="side-nav" aria-label="Navigazione principale"><div className="side-mark">F</div><button className={view==='chart'?'active':''} onClick={()=>setView('chart')}><AppIcon name="chart"/>Dossier</button>{data?.meta?.assetClass!=='crypto'&&<button className={view==='company'?'active':''} onClick={()=>setView('company')}><AppIcon name="company"/>Fondamentali</button>}<button className={view==='watchlist'?'active':''} onClick={()=>setView('watchlist')}><AppIcon name="watchlist"/>Riesami</button><small>RESEARCH<br/>LEDGER</small></nav>
       <header>
         <div className="brand">
           <span>F</span>
@@ -430,7 +432,7 @@ function App() {
       {view!=='watchlist'&&<section className="ticker">
         <div>
           <h1>{symbol}</h1>
-          <span className="live">
+          <span className="instrument-market">
             ●{" "}
             {data
               ? `${data.meta.currency} · ${data.meta.exchange}`
@@ -503,8 +505,9 @@ function App() {
           {error}. Nessun dato simulato è stato mostrato.
         </div>
       ) : (
-        data && (view==='company'?<CompanyPanel symbol={symbol}/>: (
+        data && (view==='company'?<CompanyPanel symbol={instrument.providerSymbol||symbol}/>: (
           <>
+            <ResearchBrief data={data} symbol={symbol} timeframe={tf} onOpenLog={()=>setView('watchlist')}/>
             <div className="layout">
               <section className="chart">
                 <div ref={chartEl} />

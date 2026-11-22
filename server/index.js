@@ -118,8 +118,11 @@ async function load(symbol, tf, expected = {}) {
         return { ...value, cache: 'miss' };
     }
     const key = cacheKey(symbol, tf), hit = cacheGet(key);
-    if (hit)
+    if (hit) {
+        if (expected.exchange && hit.meta?.exchange && expected.exchange.toLowerCase() !== String(hit.meta.exchange).toLowerCase())
+            throw new Error(`Mercato non corrispondente: richiesto ${expected.exchange}, ricevuto ${hit.meta.exchange}`);
         return { ...hit, cache: "hit" };
+    }
     const cfg = ranges[tf] || ranges["1D"], end = new Date(), start = new Date(end.getTime() - cfg.days * 86400000), rows = await dataProvider.chart(symbol, {
         period1: start,
         period2: end,
@@ -246,7 +249,7 @@ app.post("/api/ai/chat", async (req, res) => {
         const { question, symbol, timeframe, mode, contextId } = req.body || {};
         if (!symbol || !timeframe || !contextId)
             return res.status(400).json({ error: "Contesto incompleto" });
-        const current = await load(String(symbol), String(timeframe)), analysis = analyze(current.bars, String(mode || "trading"), String(timeframe), current.meta.assetClass === 'crypto' ? '24x7' : 'exchange-session'), expected = `${current.meta.providerId || 'yahoo'}|${current.meta.marketType || 'exchange'}|${symbol}|${timeframe}|${current.meta.lastData}`;
+        const identityParts = String(contextId).split('|'), providerSymbol = identityParts.length >= 6 ? identityParts[3] : String(symbol), identity = identityParts.length >= 6 ? { providerId: identityParts[0], assetClass: identityParts[1], exchange: identityParts[2] } : {}, current = await load(providerSymbol, String(timeframe), identity), analysis = analyze(current.bars, String(mode || "trading"), String(timeframe), current.meta.assetClass === 'crypto' ? '24x7' : 'exchange-session'), expected = `${current.meta.providerId}|${current.meta.assetClass}|${current.meta.exchange}|${current.meta.providerSymbol || providerSymbol}|${timeframe}|${current.meta.lastData}`;
         if (contextId !== expected)
             return res
                 .status(409)
@@ -257,7 +260,7 @@ app.post("/api/ai/chat", async (req, res) => {
         const requested = mode === "investment" ? ["1D", "1W", "1M"] : ["15m", "1h", "4h", "1D"], frames = [];
         for (const frame of requested) {
             try {
-                const x = await load(String(symbol), frame), a = analyze(x.bars, String(mode), frame, x.meta.assetClass === 'crypto' ? '24x7' : 'exchange-session');
+                const x = await load(providerSymbol, frame, identity), a = analyze(x.bars, String(mode), frame, x.meta.assetClass === 'crypto' ? '24x7' : 'exchange-session');
                 frames.push({
                     timeframe: frame,
                     trend: a.trend,
